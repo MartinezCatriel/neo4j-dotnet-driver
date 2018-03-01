@@ -82,14 +82,30 @@ namespace Neo4j.Driver.Internal
             return Session(AccessMode.Write, bookmarks);
         }
 
-        private ISession Session(AccessMode defaultMode, Bookmark bookmark)
+        public ISession Session(AccessMode defaultMode, string bookmark, IRetryLogic retryLogic)
+        {
+            return Session(defaultMode, Bookmark.From(bookmark, _logger), retryLogic);
+        }
+
+       
+        public ISession Session(AccessMode defaultMode, IEnumerable<string> bookmarks, IRetryLogic retryLogic)
+        {
+            return Session(defaultMode, Bookmark.From(bookmarks, _logger), retryLogic);
+        }
+
+        public ISession Session(IEnumerable<string> bookmarks, IRetryLogic retryLogic)
+        {
+            return Session(AccessMode.Write, bookmarks, retryLogic);
+        }
+
+        private ISession Session(AccessMode defaultMode, Bookmark bookmark, IRetryLogic retryLogic)
         {
             if (IsClosed)
             {
                 ThrowDriverClosedException();
             }
 
-            var session = new Session(_connectionProvider, _logger, _retryLogic, defaultMode, bookmark);
+            var session = new Session(_connectionProvider, _logger, retryLogic, defaultMode, bookmark);
 
             if (IsClosed)
             {
